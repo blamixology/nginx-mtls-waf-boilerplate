@@ -17,8 +17,9 @@ jobs:
       - run: chmod +x scripts/*.sh
       - run: ./scripts/generate-certs.sh
       - run: docker compose config --quiet
-      - run: docker compose up -d --wait
+      - run: docker compose up -d --wait --wait-timeout 60
       - run: ./scripts/test-endpoints.sh
       - if: always()
-        run: docker compose logs
-
+        run: |
+          docker compose ps --all
+          docker compose logs

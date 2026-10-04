@@ -2,7 +2,8 @@ services:
   edge:
     image: nginx:1.27-alpine
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     ports:
       - "8443:8443"
     volumes:
@@ -20,8 +21,15 @@ services:
       - ALL
     cap_add:
       - CHOWN
+      # Required to read host-generated 0600 TLS keys from the read-only bind mount.
+      - DAC_READ_SEARCH
       - SETGID
       - SETUID
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
 
   app:
     image: node:22-alpine
@@ -36,4 +44,12 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8080/healthz').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 2s
+      timeout: 2s
+      retries: 15

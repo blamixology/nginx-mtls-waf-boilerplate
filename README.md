@@ -48,8 +48,10 @@ Generated private keys are ignored by Git. Never commit them.
 | Client identity | Required certificate signed by the local demonstration CA. |
 | Edge | Per-IP request limiting and explicit rejection signatures. |
 | Application | Verified subject and request ID forwarded from the trusted proxy. |
-| Runtime | Read-only filesystems, no-new-privileges, and dropped Linux capabilities. |
+| Runtime | Read-only filesystems, no-new-privileges, and an explicit minimal capability set. |
 | Evidence | CI runs authorized and unauthorized integration cases. |
+
+The edge container retains `DAC_READ_SEARCH` only because CI-generated private keys are mode `0600` and owned by the host runner. It allows Nginx's root master process to read the key from a read-only bind mount without granting filesystem write bypass. Production secret delivery should instead align file ownership with the container identity.
 
 ## Repository map
 
