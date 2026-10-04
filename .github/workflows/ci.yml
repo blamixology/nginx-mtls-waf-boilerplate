@@ -1,0 +1,24 @@
+name: Edge security test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: chmod +x scripts/*.sh
+      - run: ./scripts/generate-certs.sh
+      - run: docker compose config --quiet
+      - run: docker compose up -d --wait
+      - run: ./scripts/test-endpoints.sh
+      - if: always()
+        run: docker compose logs
+
